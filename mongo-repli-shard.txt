@@ -1,0 +1,53 @@
+mongod --port 5000 --dbpath D:\MongoDB\proj-ddbms\repl_1 --noauth --logpath D:\MongoDB\proj-ddbms\repl_1_log.txt --replSet proj --shardsvr
+mongod --port 5001 --dbpath D:\MongoDB\proj-ddbms\repl_2 --noauth --logpath D:\MongoDB\proj-ddbms\repl_2_log.txt --replSet proj --shardsvr
+mongod --port 5002 --dbpath D:\MongoDB\proj-ddbms\repl_3 --noauth --logpath D:\MongoDB\proj-ddbms\repl_3_log.txt --replSet proj --shardsvr
+mongod --port 5003 --dbpath D:\MongoDB\proj-ddbms\repl_4 --noauth --logpath D:\MongoDB\proj-ddbms\repl_4_log.txt --replSet proj --shardsvr
+mongod --port 5004 --dbpath D:\MongoDB\proj-ddbms\repl_5 --noauth --logpath D:\MongoDB\proj-ddbms\repl_5_log.txt --replSet proj
+mongod --port 5100 --dbpath D:\MongoDB\proj-backup\new_1 --noauth --replSet proj --shardsvr
+
+#5003 is the arbiter
+#5000 has shard
+use admin
+rs.initiate({
+    _id : <replicaSetName>,
+    members: [
+      { _id : 0, host : "localhost:5000" },
+      { _id : 1, host : "localhost:5001" },
+      { _id : 2, host : "localhost:5002" },
+      { _id : 3, host : "localhost:5003" },
+    ]
+  })
+//或一个一个调用 rs.add("localhost:5001") 
+rs.conf()
+
+创立database： proj
+proj.User.ensureIndex({"uid":1}, {"unique":true});
+proj.Article.ensureIndex({"aid":1}, {"unique":true});
+proj.Read.ensureIndex({"id":1}, {"unique":true});
+
+mongod --port 6000 --dbpath D:\MongoDB\proj-ddbms\cfg_1 --noauth --logpath D:\MongoDB\proj-ddbms\cfg_1_log.txt --configsvr --replSet projCfg
+mongod --port 6001 --dbpath D:\MongoDB\proj-ddbms\cfg_2 --noauth --logpath D:\MongoDB\proj-ddbms\cfg_2_log.txt --configsvr --replSet projCfg
+mongod --port 6002 --dbpath D:\MongoDB\proj-ddbms\cfg_3 --noauth --logpath D:\MongoDB\proj-ddbms\cfg_3_log.txt --configsvr --replSet projCfg
+
+# router
+mongos --configdb projCfg/localhost:6000,localhost:6001,localhost:6002 --port 1000
+
+# add shards in router
+db.runCommand({addshard:"proj/localhost:5000,localhost:5001,localhost:5002,localhost:5003"}) 
+
+sh.shardCollection("proj.Article", {"category": 1})
+
+
+mongod --port 8000 --dbpath D:\MongoDB\proj-ddbms2\cfg_1 --noauth --logpath D:\MongoDB\proj-ddbms2\cfg_1_log.txt --configsvr --replSet projCfg2
+mongod --port 8001 --dbpath D:\MongoDB\proj-ddbms2\cfg_2 --noauth --logpath D:\MongoDB\proj-ddbms2\cfg_2_log.txt --configsvr --replSet projCfg2
+mongod --port 8002 --dbpath D:\MongoDB\proj-ddbms2\cfg_3 --noauth --logpath D:\MongoDB\proj-ddbms2\cfg_3_log.txt --configsvr --replSet projCfg2
+
+mongos --configdb proj2Cfg/localhost:8000,localhost:8001,localhost:8002 --port 2000
+
+mongod --port 7000 --dbpath D:\MongoDB\proj-ddbms2\repl_1 --noauth --logpath D:\MongoDB\proj-ddbms2\repl_1_log.txt --replSet proj2
+mongod --port 7001 --dbpath D:\MongoDB\proj-ddbms2\repl_2 --noauth --logpath D:\MongoDB\proj-ddbms2\repl_2_log.txt --replSet proj2
+mongod --port 7002 --dbpath D:\MongoDB\proj-ddbms2\repl_3 --noauth --logpath D:\MongoDB\proj-ddbms2\repl_3_log.txt --replSet proj2
+mongod --port 7003 --dbpath D:\MongoDB\proj-ddbms2\repl_4 --noauth --logpath D:\MongoDB\proj-ddbms2\repl_4_log.txt --replSet proj2
+# 7003 is the arbiter
+
+
