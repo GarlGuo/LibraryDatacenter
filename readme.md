@@ -1,13 +1,17 @@
-@author Wentao Guo (郭文韬) @email gwt20@mails.tsinghua.edu.cn | wg247@cornell.edu
-@author Haoshen Li (李浩燊) @email li-hs20@mails.tsinghua.edu.cn | hl2239@cornell.edu
+@author Wentao Guo @email wg247@cornell.edu
 
-<h2>再跑之前，先去执行一下 db 文件夹中的 genTable_mongoDB.py ```python db/genTable_mongoDB.py```</h2>
+@author Haoshen Li @email hl2239@cornell.edu
+
+<h3>We need to first generate random articles/videos inside folder 'db' by executing <em>db/genTable_mongoDB.py</em></h3>
+
+    python db/genTable_mongoDB.py
 
 
-<h2>注意：下面任何的mongod/mongos指令都是开启一个新的mongo服务器的，因为mongo服务器在terminal里面开启后会一直跑，所以遇到mongod/mongos指令一定要新开一个terminal执行</h2>
+<h3>Note：we need to open a new terminal whenever we need to turn on a Mongos/Mongod server because once a server is started, it will run forever until we close the terminal so we cannot issue any subsequent command on this terminal.</h3>
 
 
-1. 执行MongoDB指令创立server, --dbpath随便选一个本机文件夹就行（改下面的--dbpath后面参数，提供一个绝对路径即可）**注意这里每输入一个指令要开个新的terminal输入下一个，因为server启动后关闭terminal会连带着关闭server**：
+1. Start 4 mongods servers by the following commands. Note that we can use any address for --dbpath. 
+**We need to open a new terminal once a mongod server is started**：
 
 
     ```mongod --port 5000 --dbpath D:\MongoDB\proj-ddbms\repl_1 --noauth --replSet proj --shardsvr```
@@ -19,12 +23,12 @@
     ```mongod --port 5003 --dbpath D:\MongoDB\proj-ddbms\repl_4 --noauth --replSet proj --shardsvr```
 
 
-2. 打开termainl, 输入 ```mongo --port 5000```可以看到进入了一个mongo shell界面
+2. Check if our server is started by typing ```mongo --port 5000``` in terminal.
 
-    (下面的primary/secondary在成功部署了replica set后会出现)
-![alt text](./mongo-succeed.png)
+    (The word "primary/secondary" will be shown after we deploy a replica set)
+![alt text](./readme_image/mongo-succeed.png)
 
-3. 按顺序输入
+    We then type the following commands in this shell 
             
     ```use admin```
 
@@ -36,7 +40,7 @@
 
     ```rs.addArb('localhost:5003)```
 
-4. 搭建config server (**前三个指令和上面一样，不要关掉terminal而是要开一个新terminal输入下一个**):
+3. Deploy a config server (**We also need to open a terminal for each commd in the first 3 lines. The later 5 commands are executed in the same terminal**):
 
     ``` mongod --port 6000 --dbpath D:\MongoDB\proj-ddbms\cfg_1 --noauth --configsvr --replSet projCfg ```
 
@@ -55,11 +59,11 @@
     ```rs.add('localhost:6002)```
 
 
-5. 搭建router (**第一个指令也是不要关掉terminal, 下一个指令在新的terminal里面打开**)
+4. Deploy a router (**We also need to open a terminal for the first command**)
     
     ```mongos --configdb projCfg/localhost:6000,localhost:6001,localhost:6002 --port 1000```
 
-    这三个指令在同一个terminal里面执行
+    We execute these 3 commands in one terminal.
 
     ```mongo --port 1000```
 
@@ -68,7 +72,7 @@
     ```db.runCommand({addshard:"proj/localhost:5000,localhost:5001,localhost:5002,localhost:5003"})```
 
 
-6. 对于DBMS2，我们再创建一个replica set，基本是重复上面步骤 (dbpath也是随便选一个本机的空文件夹就行)
+6. We need to create a new replica set for DBMS2.
 
     ```mongod --port 7000 --dbpath D:\MongoDB\proj-ddbms2\repl_1 --noauth --replSet proj2 --shardsvr```
 
@@ -77,7 +81,7 @@
     ```mongod --port 7002 --dbpath D:\MongoDB\proj-ddbms2\repl_3 --noauth --replSet proj2 --shardsvr```
     
     
-    下面五步，同一个terminal里面执行
+    The following 5 commands are executed in one terminal.
 
     ```mongo --port 7000```
     
@@ -91,7 +95,7 @@
 
     --end--
 
-    下面三步，在三个<h3>**不 同 的**</h3>terminal里面执行
+    These 3 commands are executed in 3 different terminals.
 
     ```mongod --port 8000 --dbpath D:\MongoDB\proj-ddbms2\cfg_1 --noauth --configsvr```
 
@@ -99,7 +103,7 @@
 
     ```mongod --port 8002 --dbpath D:\MongoDB\proj-ddbms2\cfg_3 --noauth --configsvr```
 
-    下面五步，同一个terminal里面执行
+    The following 5 commands are executed in one terminal.
 
     ```mongo --port 8000```
     
@@ -113,12 +117,12 @@
 
     --end--
 
-    又是要 **新开一个** terminal
+    Again, open a new terminal.
 
     ```mongos --configdb proj2Cfg/localhost:8000,localhost:8001,localhost:8002 --port 2000```
 
 
-    下面三步，同一个terminal里面执行
+    These 3 commands are executed in 3 different terminals.
 
     ```mongo --port 2000```
 
@@ -128,52 +132,77 @@
     
     --end--
 
-    注：
-    mongod成功连接并打开的界面 命令行内： ```mongo --port [port number]```
-    (下面的primary/secondary在成功部署了replica set后会出现)
+ 7. Start <em>redis-server.exe</em> and make sure the port is set as default (port# 6379)
+
+ 8. Open $HADOOP_HOME/sbin folder，run <em>start-all.sh</em> on macOS/Linux or <em>start-all.cmd</em> on Windows.
+
+ <h3>Don't change the sequence of the running scripts</h3>
+
+ 9. ```python readraw.py``` to insert documents into User/Article/Read table
+
+ 10. ```python main.py``` to perform some queries on User/Article/Read table with/without join
+
+ 11. ```python pop_rank_demo.py``` to do pop_rank / be_read computations + download Top-5 Read Articles from HDFS
+ 12. ```python server_status_demo.py``` do a demo of logging server status
+
+ 13. ```python migrate.py``` do a demo of data migration to another data center at runtime
+
+ 14. ```python new_server_demo.py``` do a demo of adding a new server to existing data center at runtime
+
+ 15. ```python drop_server.py``` do a demo of dropping a secondary-node server at runtime
+
+_________________
+
+
+<ul><h2>Tips</h2>
+
+<li>
+To test if mongod is on: ```mongo --port [port number]```
     
-    ![alt text](./mongo-succeed.png)
+![alt text](./readme_image/mongo-succeed.png)
 
-    mongo shell内成功添加一个datanode的成功样式： 先```use admin```, 然后```rs.add('localhost:[port number]')```
+</li>
 
-    ![alt text](./mongo_repl.png)
-    注意: 'ok' == 1 代表成功，其他都是失败
+<li>
+To add a datanode is successfully to an existing replica set: open mongo shell on any running server of this replica set:
 
-    mongo shell内检查datanode： ```use admin```后, ```rs.conf()```打印出来的'members'信息
+```mongo --port [running port number]```
 
-    ![alt text](./conf.png)
-    注意: ok == 1
+```use admin```
 
+```rs.add('localhost:[new datanode port number]')```
 
-    redis server还在跑的检测： 打开redis-cli.exe (redis shell) ```echo 'hello world'```
+![alt text](./readme_image/mongo_repl.png)
+'ok' == 1 means success
+</li>
+
+<li>
+Check a datanode status in mongo shell： 
+
+```use admin```
+
+```rs.conf()```
+
+and we lookup the wanted host number in the 'members' field
+
+![alt text](./readme_image/conf.png)
+</li>
+
+<li>
+Test if redis server is on： start redis-cli.exe (redis shell) and command <code>echo 'hello world'</code>
     
-    ![alt text](./redis_running.png)
+![alt text](./readme_image/redis_running.png)
+</li>
+
+<li>
+Test if HDFS is on： command ```jps``` in terminal, and if DataNode / ResourceManager / NameNode / NodeManager are all shown, we know our HDFS is still working
+
+![alt text](./readme_image/hdfs_run.png)
+</li>
+</ul>
+
+_________________
 
 
-    hdfs还在跑的检测： 打开terminal 输入 ```jps```, 可以看到 DataNode / ResourceManager / NameNode / NodeManager 还在就说明还在跑
-
-    ![alt text](./hdfs_run.png)
-
- 7. 运行redis-server.exe, 确认跑的port是默认的6379（可以用redis-cli.exe查看，命令行里输入redis-cli
-
- 8. 点开$HADOOP_HOME/sbin文件夹，假如是macOS/Linux就跑start-all.sh, 是windows就跑start-all.cmd
-
- <h2>注：下面的执行顺序不要改变</h2>
-
- 9. ```python readraw.py```进行User/Article/Read Table读取插入
-
- 10. ```python main.py```进行query with/without join
-
- 11. ```python pop_rank_demo.py```进行pop_rank / be_read计算 + hadoop下载
-
- 12. ```python server_status_demo.py```跑server status的展示
-
- 13. ```python migrate.py```跑runtime migrate to another data center展示
-
- 14. ```python new_server_demo.py```跑runtime add server展示
-
- 15. ```python drop_server.py```跑runtime drop server展示
-
-
-  注：想上传hdfs文件执行  ```hdfs dfs -put [src] [dst]```就行，但我实现了一个jar ('proj.jar')专门针对上传 db/articles 里面生成的几十万个文件夹的 (可以记录上传成功/失败的文档，而且多线程执行+自动打印当前进程). 这个时候可以用 ```hadoop jar proj.jar```就行了
+<h3>Note：we can upload any files/directories into HDFS by executing <code>hdfs dfs -put [src addr] [dst addr]</code>, but I also create a jar file ('proj.jar') to faciliate uploading all files in <em>db/articles</em>. This implementation leverages multi-threads and prints current progress for every 10 seconds. Its source code can be found in <em>Main.java</em>. We only need to simply command <code>hadoop jar proj.jar</code> in terminal.</h3>
 
