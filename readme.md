@@ -1,3 +1,6 @@
+**There is a report on this project as ```report.pdf``` and slides illustrating the datacenter's architecture as ```presentation.pptx```. I also recorded a demo video but Github does not allow me to upload such video because it is too big. Please send me an email (```wg247@cornell.edu```) if you want to see the demo video**
+
+
 @author Wentao Guo @email wg247@cornell.edu
 
 @author Haoshen Li @email hl2239@cornell.edu
