@@ -198,7 +198,7 @@ Test if redis server is on： start redis-cli.exe (redis shell) and command <cod
 </li>
 
 <li>
-Test if HDFS is on： command <script>jps</script> in terminal, and if DataNode / ResourceManager / NameNode / NodeManager are all shown, we know our HDFS is still working
+Test if HDFS is on： command <code>jps</code> in terminal, and if DataNode / ResourceManager / NameNode / NodeManager are all shown, we know our HDFS is still working
 
 ![alt text](./readme_image/hdfs_run.png)
 </li>
